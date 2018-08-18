@@ -11,6 +11,8 @@
 % stdloc: (2x1 vector) standard deviations of heights
 % 'ntrial': (default 10,000) number of times to monte carlo sedimentation 
 %   rates
+% 'stdfreq': uncertainties on frequencies; either a constant which is
+%   applied to all frequencies, or a vector of equal length to f
 %
 % OUT:
 % fstd: standard deviation of temporal frequency due to uncertainty in
@@ -31,19 +33,30 @@ addRequired(parser,'stdages',@isnumeric)
 addRequired(parser,'locs',@isnumeric)
 addRequired(parser,'stdlocs',@isnumeric)
 addParameter(parser,'ntrial',10000,@isscalar)
+addParameter(parser,'stdfreq',0,@isnumeric)
 
 parse(parser,f,ages,stdages,locs,stdlocs,varargin{:});
 
-f = parser.Results.f;
-ages = parser.Results.ages;
+f       = parser.Results.f;
+ages    = parser.Results.ages;
 stdages = parser.Results.stdages;
-locs = parser.Results.locs;
+locs    = parser.Results.locs;
 stdlocs = parser.Results.stdlocs;
-nt   = parser.Results.ntrial;
+nt      = parser.Results.ntrial;
+stdfreq = parser.Results.stdfreq;
 
 % make column
 f = f(:);
 nf = length(f);
+
+% validate stdfreq
+assert(length(stdfreq) == 1 || length(stdfreq) == nf,...
+    'stdfreq must be constant or of equal length to f')
+
+% if constant, just make into vector
+if length(stdfreq) == 1
+    stdfreq = stdfreq*ones(nf,1);
+end
 
 % now generate random sed rates. we need two sets: 
 % 1) one for converting from time to space. This set reflects the fact 
@@ -74,8 +87,10 @@ sr2time = (normrnd(locs(2),stdlocs(2),nt,1) - ...
 % now we convert from time to space back to time
 fobs = zeros(nt,nf);
 for ii = 1:nf
-    fx = f(ii)./sr2space;   % spatial frequency
-    fobs(:,ii) = fx.*sr2time; % recovered temporal frequency
+    % spatial frequency
+    fx = normrnd(f(ii),stdfreq(ii),nt,1)./sr2space;   
+    % recovered temporal frequency
+    fobs(:,ii) = fx.*sr2time; 
 end
  
 % the resulting distribution of frequencies is Gaussian in this model, so
