@@ -53,6 +53,9 @@ nf = length(f);
 assert(length(stdfreq) == 1 || length(stdfreq) == nf,...
     'stdfreq must be constant or of equal length to f')
 
+% validate stdlocs
+assert(length(stdlocs) == 2,'stdlocs must be length 2')
+
 % if constant, just make into vector
 if length(stdfreq) == 1
     stdfreq = stdfreq*ones(nf,1);
