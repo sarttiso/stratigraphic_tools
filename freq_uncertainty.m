@@ -49,12 +49,16 @@ stdfreq = parser.Results.stdfreq;
 f = f(:);
 nf = length(f);
 
+% validate ages and locations
+assert(length(ages)==2,'must provide 2 ages')
+assert(length(stdages)==2,'must provide uncertainties for both ages')
+assert(length(locs)==2,'must provide 2 locations of ages')
+assert(length(stdlocs)==2,...
+    'must provide uncertainties for both age locations')
+
 % validate stdfreq
 assert(length(stdfreq) == 1 || length(stdfreq) == nf,...
     'stdfreq must be constant or of equal length to f')
-
-% validate stdlocs
-assert(length(stdlocs) == 2,'stdlocs must be length 2')
 
 % if constant, just make into vector
 if length(stdfreq) == 1
@@ -75,10 +79,7 @@ end
 
 % these sed rates are for converting the frequency of interest to a spatial
 % frequency
-sr2space = (normrnd(locs(2),stdlocs(2),nt,1) - ...
-            normrnd(locs(1),stdlocs(1),nt,1)) ./ ...
-           (normrnd(ages(2),stdages(2),nt,1) - ...
-            normrnd(ages(1),stdages(1),nt,1));
+sr2space = sedrate_gen(ages,stdages,locs,stdlocs,'nt',nt);
      
 % these sed rates are for converting the spatial frequency back into a
 % temporal frequency
